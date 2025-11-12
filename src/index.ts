@@ -1,27 +1,19 @@
-import 'reflect-metadata';
 import express, { Application } from 'express';
-import { Container } from 'inversify';
-import { configureContainer } from './config/container';
-import { configureUserRoutes } from './adapters/presentation/routes/userRoutes';
+import { setupUserRoutes } from './adapters/presentation/routes/userRoutes';
 import { errorHandler, notFoundHandler } from './adapters/presentation/middleware/errorHandler';
-import { UserController } from './adapters/presentation/controllers/UserController';
-import { TYPES } from './config/types';
 
 class App {
   private app: Application;
-  private container: Container;
   private port: number = 3000;
 
   constructor() {
     this.app = express();
-    this.container = configureContainer();
-
-    this.configureMiddleware();
-    this.configureRoutes();
-    this.configureErrorHandlers();
+    this.setupMiddleware();
+    this.setupRoutes();
+    this.setupErrorHandlers();
   }
 
-  private configureMiddleware(): void {
+  private setupMiddleware(): void {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
@@ -31,7 +23,7 @@ class App {
     });
   }
 
-  private configureRoutes(): void {
+  private setupRoutes(): void {
     const router = express.Router();
 
     router.get('/api', (req, res) => {
@@ -42,13 +34,12 @@ class App {
       });
     });
 
-    const userController = this.container.get<UserController>(TYPES.UserController);
-    configureUserRoutes(router, userController);
+    setupUserRoutes(router);
 
     this.app.use('/api', router);
   }
 
-  private configureErrorHandlers(): void {
+  private setupErrorHandlers(): void {
     this.app.use(notFoundHandler);
     this.app.use(errorHandler);
   }

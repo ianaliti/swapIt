@@ -1,12 +1,5 @@
 # User Management API - Clean Architecture
 
-## Installation
-
-```bash
-npm install
-npm run dev
-```
-
 API available at `http://localhost:3000/api`
 
 ## Architecture - Hexagonal (5 Layers)
@@ -39,7 +32,7 @@ Adapters → Application → Domain
 (depends)  (depends)  (independent)
 ```
 
-The **Domain** is the center and has **no dependencies**.  
+The Domain is the center and has no dependencies.  
 Everything depends on the Domain, not the other way around.
 
 ### Use Cases
@@ -69,22 +62,6 @@ GET    /api/users      # Get all users
 GET    /api/users/:id  # Get user by ID
 PUT    /api/users/:id  # Update user
 DELETE /api/users/:id  # Delete user
-```
-
-## Example
-
-```bash
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nom": "Dupont",
-    "prenom": "Marie",
-    "email": "marie@company.com",
-    "telephone": "0612345678"
-  }'
-```
-
-## Design Choices
 
 ### Why Clean Architecture?
 

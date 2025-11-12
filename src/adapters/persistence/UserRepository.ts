@@ -1,14 +1,13 @@
-import { injectable } from 'inversify';
 import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { User, UserProfile } from '../../domain/entities/User';
 
-@injectable()
 export class UserRepository implements IUserRepository {
   private users: Map<number, User> = new Map();
   private currentId: number = 1;
 
   async create(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     const now = new Date();
+    
     const user = new User(
       this.currentId++,
       userData.nom,
@@ -21,15 +20,23 @@ export class UserRepository implements IUserRepository {
     );
 
     this.users.set(user.id, user);
+    
     return user;
   }
 
   async findById(id: number): Promise<User | null> {
-    return this.users.get(id) || null;
+    const user = this.users.get(id);
+    
+    if (!user) {
+      return null;
+    }
+    
+    return user;
   }
 
   async findAll(): Promise<User[]> {
-    return Array.from(this.users.values());
+    const allUsers = Array.from(this.users.values());
+    return allUsers;
   }
 
   async update(id: number, userData: Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>>): Promise<User | null> {
@@ -38,11 +45,21 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    if (userData.nom !== undefined) user.nom = userData.nom;
-    if (userData.prenom !== undefined) user.prenom = userData.prenom;
-    if (userData.email !== undefined) user.email = userData.email;
-    if (userData.telephone !== undefined) user.telephone = userData.telephone;
-    if (userData.profil !== undefined) user.profil = userData.profil;
+    if (userData.nom !== undefined) {
+      user.nom = userData.nom;
+    }
+    if (userData.prenom !== undefined) {
+      user.prenom = userData.prenom;
+    }
+    if (userData.email !== undefined) {
+      user.email = userData.email;
+    }
+    if (userData.telephone !== undefined) {
+      user.telephone = userData.telephone;
+    }
+    if (userData.profil !== undefined) {
+      user.profil = userData.profil;
+    }
     
     user.updatedAt = new Date();
 
@@ -59,7 +76,7 @@ export class UserRepository implements IUserRepository {
         return user;
       }
     }
+    
     return null;
   }
 }
-

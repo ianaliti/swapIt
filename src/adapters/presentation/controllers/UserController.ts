@@ -1,27 +1,34 @@
 import { Request, Response } from 'express';
-import { injectable, inject } from 'inversify';
 import { CreateUser } from '../../../application/use-cases/CreateUser';
 import { GetUser } from '../../../application/use-cases/GetUser';
 import { GetAllUsers } from '../../../application/use-cases/GetAllUsers';
 import { UpdateUser } from '../../../application/use-cases/UpdateUser';
 import { DeleteUser } from '../../../application/use-cases/DeleteUser';
 import { CreateUserDto, UpdateUserDto } from '../../../application/dtos/UserDto';
-import { TYPES } from '../../../config/types';
+import { UserRepository } from '../../persistence/UserRepository';
 
-@injectable()
 export class UserController {
-  constructor(
-    @inject(TYPES.CreateUser) private createUser: CreateUser,
-    @inject(TYPES.GetUser) private getUser: GetUser,
-    @inject(TYPES.GetAllUsers) private getAllUsers: GetAllUsers,
-    @inject(TYPES.UpdateUser) private updateUser: UpdateUser,
-    @inject(TYPES.DeleteUser) private deleteUser: DeleteUser
-  ) {}
+  private createUserUseCase: CreateUser;
+  private getUserUseCase: GetUser;
+  private getAllUsersUseCase: GetAllUsers;
+  private updateUserUseCase: UpdateUser;
+  private deleteUserUseCase: DeleteUser;
+
+  constructor() {
+    const userRepository = new UserRepository();
+    
+    this.createUserUseCase = new CreateUser(userRepository);
+    this.getUserUseCase = new GetUser(userRepository);
+    this.getAllUsersUseCase = new GetAllUsers(userRepository);
+    this.updateUserUseCase = new UpdateUser(userRepository);
+    this.deleteUserUseCase = new DeleteUser(userRepository);
+  }
 
   async create(req: Request, res: Response): Promise<void> {
     try {
       const userData: CreateUserDto = req.body;
-      const newUser = await this.createUser.execute(userData);
+      
+      const newUser = await this.createUserUseCase.execute(userData);
 
       res.status(201).json({
         success: true,
@@ -48,7 +55,7 @@ export class UserController {
         return;
       }
 
-      const user = await this.getUser.execute(id);
+      const user = await this.getUserUseCase.execute(id);
 
       if (!user) {
         res.status(404).json({
@@ -72,7 +79,7 @@ export class UserController {
 
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const users = await this.getAllUsers.execute();
+      const users = await this.getAllUsersUseCase.execute();
 
       res.status(200).json({
         success: true,
@@ -100,7 +107,7 @@ export class UserController {
         return;
       }
 
-      const updatedUser = await this.updateUser.execute(id, userData);
+      const updatedUser = await this.updateUserUseCase.execute(id, userData);
 
       if (!updatedUser) {
         res.status(404).json({
@@ -135,7 +142,7 @@ export class UserController {
         return;
       }
 
-      const deleted = await this.deleteUser.execute(id);
+      const deleted = await this.deleteUserUseCase.execute(id);
 
       if (!deleted) {
         res.status(404).json({
@@ -157,4 +164,3 @@ export class UserController {
     }
   }
 }
-
