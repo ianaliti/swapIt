@@ -17,38 +17,30 @@ export class UpdateUser {
         throw new Error('Invalid email format');
       }
 
-      if (userData.email !== existingUser.email) {
+      if (userData.email !== existingUser.getEmail()) {
         const emailExists = await this.userRepository.findByEmail(userData.email);
         if (emailExists) {
           throw new Error('A user with this email already exists');
         }
 
-        const newProfil = User.determineProfile(userData.email);
-        const userDataWithProfile = { ...userData, profil: newProfil };
-        
-        const updatedUser = await this.userRepository.update(id, userDataWithProfile);
-
-        if (!updatedUser) {
-          return null;
-        }
-
-        return UserMapper.toResponseDto(updatedUser);
+        existingUser.changeEmail(userData.email);
       }
     }
 
     if (userData.telephone) {
-      const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
-      if (!phoneRegex.test(userData.telephone)) {
-        throw new Error('Invalid phone number format');
-      }
+      existingUser.changeTelephone(userData.telephone);
     }
 
-    const updatedUser = await this.userRepository.update(id, userData);
-
-    if (!updatedUser) {
-      return null;
+    if (userData.nom) {
+      existingUser.nom = userData.nom;
     }
 
-    return UserMapper.toResponseDto(updatedUser);
+    if (userData.prenom) {
+      existingUser.prenom = userData.prenom;
+    }
+
+    existingUser.updatedAt = new Date();
+
+    return UserMapper.toResponseDto(existingUser);
   }
 }

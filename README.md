@@ -11,8 +11,10 @@ This project follows Clean Architecture principles with strict separation of con
 ```
 src/
 ├── domain/                    # Business Core (center)
-│   ├── entities/             # Business entities
-│   └── ports/                # Interfaces (contracts)
+│   ├── entities/             # Business entities (User)
+│   ├── value-objects/        # Value Objects (Email, PhoneNumber)
+│   ├── ports/                # Interfaces (IUserRepository)
+│   └── __tests__/            # Domain unit tests
 │
 ├── application/              # Use Cases
 │   ├── use-cases/           # Business operations
@@ -54,6 +56,23 @@ The profile assignment rule lives in the **Domain layer**:
 
 This rule is in `domain/entities/User.ts` and is independent of any framework or database.
 
+### Domain Layer Features
+
+**Value Objects:**
+- `Email` - Validates email format (must have @ and .)
+- `PhoneNumber` - Validates phone number is not empty
+
+**Entity:**
+- `User` - Encapsulates user data and business rules
+- Constructor validates all inputs
+- Methods: `changeEmail()`, `changeTelephone()`, `isAdmin()`
+- Profile automatically calculated based on email domain
+
+**Tests:**
+- 11 unit tests covering domain logic
+- Tests email validation, profile assignment, and user creation
+- Run with: `npm test`
+
 ## API Endpoints
 
 ```bash
@@ -88,8 +107,10 @@ Instead of generic services, we have specific Use Cases:
 
 ### 1. Domain (Core)
 - **No dependencies** on other layers
-- Contains business entities and rules
+- Contains business entities (User) and rules
+- Value Objects for Email and PhoneNumber
 - Defines interfaces (ports) that it needs
+- 11 unit tests validate business rules
 
 ### 2. Application
 - Orchestrates the business logic

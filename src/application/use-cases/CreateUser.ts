@@ -32,17 +32,15 @@ export class CreateUser {
       throw new Error('A user with this email already exists');
     }
 
-    const profil = User.determineProfile(userData.email);
+    const user = new User(
+      0,
+      userData.nom,
+      userData.prenom,
+      userData.email,
+      userData.telephone
+    );
 
-    const userToCreate = {
-      nom: userData.nom,
-      prenom: userData.prenom,
-      email: userData.email,
-      telephone: userData.telephone,
-      profil: profil
-    };
-
-    const createdUser = await this.userRepository.create(userToCreate);
+    const createdUser = await this.userRepository.create(user);
     
     return UserMapper.toResponseDto(createdUser);
   }

@@ -6,17 +6,12 @@ export class UserRepository implements IUserRepository {
   private currentId: number = 1;
 
   async create(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    const now = new Date();
-    
     const user = new User(
       this.currentId++,
       userData.nom,
       userData.prenom,
-      userData.email,
-      userData.telephone,
-      userData.profil,
-      now,
-      now
+      userData.getEmail(),
+      userData.getTelephone()
     );
 
     this.users.set(user.id, user);
@@ -51,14 +46,11 @@ export class UserRepository implements IUserRepository {
     if (userData.prenom !== undefined) {
       user.prenom = userData.prenom;
     }
-    if (userData.email !== undefined) {
-      user.email = userData.email;
+    if (userData.getEmail && userData.getEmail() !== user.getEmail()) {
+      user.changeEmail(userData.getEmail());
     }
-    if (userData.telephone !== undefined) {
-      user.telephone = userData.telephone;
-    }
-    if (userData.profil !== undefined) {
-      user.profil = userData.profil;
+    if (userData.getTelephone) {
+      user.changeTelephone(userData.getTelephone());
     }
     
     user.updatedAt = new Date();
@@ -72,7 +64,7 @@ export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     for (const user of this.users.values()) {
-      if (user.email === email) {
+      if (user.getEmail() === email) {
         return user;
       }
     }
