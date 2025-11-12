@@ -2,9 +2,9 @@ import 'reflect-metadata';
 import express, { Application } from 'express';
 import { Container } from 'inversify';
 import { configureContainer } from './config/container';
-import { configureUserRoutes } from './presentation/routes/userRoutes';
-import { errorHandler, notFoundHandler } from './presentation/middleware/errorHandler';
-import { UserController } from './presentation/controllers/UserController';
+import { configureUserRoutes } from './adapters/presentation/routes/userRoutes';
+import { errorHandler, notFoundHandler } from './adapters/presentation/middleware/errorHandler';
+import { UserController } from './adapters/presentation/controllers/UserController';
 import { TYPES } from './config/types';
 
 class App {
@@ -64,4 +64,3 @@ class App {
 
 const app = new App();
 app.start();
-

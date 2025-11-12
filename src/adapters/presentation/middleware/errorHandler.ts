@@ -20,3 +20,4 @@ export function notFoundHandler(req: Request, res: Response): void {
     error: 'Route not found'
   });
 }
+

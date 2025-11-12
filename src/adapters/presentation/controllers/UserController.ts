@@ -1,19 +1,27 @@
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
-import { IUserService } from '../../application/services/IUserService';
-import { CreateUserDto, UpdateUserDto } from '../../application/dtos/UserDto';
-import { TYPES } from '../../config/types';
+import { CreateUser } from '../../../application/use-cases/CreateUser';
+import { GetUser } from '../../../application/use-cases/GetUser';
+import { GetAllUsers } from '../../../application/use-cases/GetAllUsers';
+import { UpdateUser } from '../../../application/use-cases/UpdateUser';
+import { DeleteUser } from '../../../application/use-cases/DeleteUser';
+import { CreateUserDto, UpdateUserDto } from '../../../application/dtos/UserDto';
+import { TYPES } from '../../../config/types';
 
 @injectable()
 export class UserController {
   constructor(
-    @inject(TYPES.IUserService) private userService: IUserService
+    @inject(TYPES.CreateUser) private createUser: CreateUser,
+    @inject(TYPES.GetUser) private getUser: GetUser,
+    @inject(TYPES.GetAllUsers) private getAllUsers: GetAllUsers,
+    @inject(TYPES.UpdateUser) private updateUser: UpdateUser,
+    @inject(TYPES.DeleteUser) private deleteUser: DeleteUser
   ) {}
 
-  async createUser(req: Request, res: Response): Promise<void> {
+  async create(req: Request, res: Response): Promise<void> {
     try {
       const userData: CreateUserDto = req.body;
-      const newUser = await this.userService.createUser(userData);
+      const newUser = await this.createUser.execute(userData);
 
       res.status(201).json({
         success: true,
@@ -28,19 +36,19 @@ export class UserController {
     }
   }
 
-  async getUserById(req: Request, res: Response): Promise<void> {
+  async getById(req: Request, res: Response): Promise<void> {
     try {
       const id = parseInt(req.params.id);
 
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'ID invalide'
+          error: 'Invalid ID'
         });
         return;
       }
 
-      const user = await this.userService.getUserById(id);
+      const user = await this.getUser.execute(id);
 
       if (!user) {
         res.status(404).json({
@@ -62,9 +70,9 @@ export class UserController {
     }
   }
 
-  async getAllUsers(req: Request, res: Response): Promise<void> {
+  async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const users = await this.userService.getAllUsers();
+      const users = await this.getAllUsers.execute();
 
       res.status(200).json({
         success: true,
@@ -79,7 +87,7 @@ export class UserController {
     }
   }
 
-  async updateUser(req: Request, res: Response): Promise<void> {
+  async update(req: Request, res: Response): Promise<void> {
     try {
       const id = parseInt(req.params.id);
       const userData: UpdateUserDto = req.body;
@@ -87,12 +95,12 @@ export class UserController {
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'ID invalide'
+          error: 'Invalid ID'
         });
         return;
       }
 
-      const updatedUser = await this.userService.updateUser(id, userData);
+      const updatedUser = await this.updateUser.execute(id, userData);
 
       if (!updatedUser) {
         res.status(404).json({
@@ -115,19 +123,19 @@ export class UserController {
     }
   }
 
-  async deleteUser(req: Request, res: Response): Promise<void> {
+  async delete(req: Request, res: Response): Promise<void> {
     try {
       const id = parseInt(req.params.id);
 
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'ID invalide'
+          error: 'Invalid ID'
         });
         return;
       }
 
-      const deleted = await this.userService.deleteUser(id);
+      const deleted = await this.deleteUser.execute(id);
 
       if (!deleted) {
         res.status(404).json({
@@ -149,3 +157,4 @@ export class UserController {
     }
   }
 }
+

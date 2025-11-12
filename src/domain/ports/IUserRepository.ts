@@ -8,3 +8,4 @@ export interface IUserRepository {
   delete(id: number): Promise<boolean>;
   findByEmail(email: string): Promise<User | null>;
 }
+
