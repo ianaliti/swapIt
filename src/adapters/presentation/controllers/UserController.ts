@@ -1,30 +1,20 @@
 import { Request, Response } from 'express';
-import { CreateUser } from '../../../application/use-cases/CreateUser';
-import { GetUser } from '../../../application/use-cases/GetUser';
-import { GetAllUsers } from '../../../application/use-cases/GetAllUsers';
-import { UpdateUser } from '../../../application/use-cases/UpdateUser';
-import { DeleteUser } from '../../../application/use-cases/DeleteUser';
+import { CommandBus } from '../../../application/commands/CommandBus';
+import { QueryBus } from '../../../application/queries/QueryBus';
+import { CreateUserCommand } from '../../../application/commands/CreateUserCommand';
+import { UpdateUserCommand } from '../../../application/commands/UpdateUserCommand';
+import { DeleteUserCommand } from '../../../application/commands/DeleteUserCommand';
+import { GetUserQuery } from '../../../application/queries/GetUserQuery';
+import { GetAllUsersQuery } from '../../../application/queries/GetAllUsersQuery';
 import { CreateUserDto, UpdateUserDto } from '../../../application/dtos/UserDto';
 
 export class UserController {
-  createUserUseCase: CreateUser;
-  getUserUseCase: GetUser;
-  getAllUsersUseCase: GetAllUsers;
-  updateUserUseCase: UpdateUser;
-  deleteUserUseCase: DeleteUser;
+  commandBus: CommandBus;
+  queryBus: QueryBus;
 
-  constructor(
-    createUserUseCase: CreateUser,
-    getUserUseCase: GetUser,
-    getAllUsersUseCase: GetAllUsers,
-    updateUserUseCase: UpdateUser,
-    deleteUserUseCase: DeleteUser
-  ) {
-    this.createUserUseCase = createUserUseCase;
-    this.getUserUseCase = getUserUseCase;
-    this.getAllUsersUseCase = getAllUsersUseCase;
-    this.updateUserUseCase = updateUserUseCase;
-    this.deleteUserUseCase = deleteUserUseCase;
+  constructor(commandBus: CommandBus, queryBus: QueryBus) {
+    this.commandBus = commandBus;
+    this.queryBus = queryBus;
   }
 
   async create(req: Request, res: Response): Promise<void> {
@@ -32,8 +22,9 @@ export class UserController {
       console.log('Controller: Creating user');
       
       const userData: CreateUserDto = req.body;
+      const command = new CreateUserCommand(userData);
       
-      const newUser = await this.createUserUseCase.execute(userData);
+      const newUser = await this.commandBus.execute('CreateUser', command);
 
       res.status(201).json({
         success: true,
@@ -74,7 +65,8 @@ export class UserController {
         return;
       }
 
-      const user = await this.getUserUseCase.execute(id);
+      const query = new GetUserQuery(id);
+      const user = await this.queryBus.execute('GetUser', query);
 
       if (!user) {
         res.status(404).json({
@@ -100,7 +92,8 @@ export class UserController {
 
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const users = await this.getAllUsersUseCase.execute();
+      const query = new GetAllUsersQuery();
+      const users = await this.queryBus.execute('GetAllUsers', query);
 
       res.status(200).json({
         success: true,
@@ -130,7 +123,8 @@ export class UserController {
         return;
       }
 
-      const updatedUser = await this.updateUserUseCase.execute(id, userData);
+      const command = new UpdateUserCommand(id, userData);
+      const updatedUser = await this.commandBus.execute('UpdateUser', command);
 
       if (!updatedUser) {
         res.status(404).json({
@@ -179,7 +173,8 @@ export class UserController {
         return;
       }
 
-      const deleted = await this.deleteUserUseCase.execute(id);
+      const command = new DeleteUserCommand(id);
+      const deleted = await this.commandBus.execute('DeleteUser', command);
 
       if (!deleted) {
         res.status(404).json({

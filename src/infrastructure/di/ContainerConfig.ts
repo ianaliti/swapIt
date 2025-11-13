@@ -1,17 +1,17 @@
 import { Container } from './Container';
 import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { UserRepository } from '../../adapters/persistence/UserRepository';
-import { CreateUser } from '../../application/use-cases/CreateUser';
-import { GetUser } from '../../application/use-cases/GetUser';
-import { GetAllUsers } from '../../application/use-cases/GetAllUsers';
-import { UpdateUser } from '../../application/use-cases/UpdateUser';
-import { DeleteUser } from '../../application/use-cases/DeleteUser';
+import { CommandBus } from '../../application/commands/CommandBus';
+import { QueryBus } from '../../application/queries/QueryBus';
+import { CreateUserHandler } from '../../application/commands/CreateUserCommand';
+import { UpdateUserHandler } from '../../application/commands/UpdateUserCommand';
+import { DeleteUserHandler } from '../../application/commands/DeleteUserCommand';
+import { GetUserHandler } from '../../application/queries/GetUserQuery';
+import { GetAllUsersHandler } from '../../application/queries/GetAllUsersQuery';
 import { UserController } from '../../adapters/presentation/controllers/UserController';
 
 export function configureContainer(): Container {
   const container = new Container();
-
-  console.log('=== Configuring IoC Container ===');
 
   container.register(
     'IUserRepository',
@@ -20,72 +20,44 @@ export function configureContainer(): Container {
   );
 
   container.register(
-    'CreateUser',
+    'CommandBus',
     () => {
+      const commandBus = new CommandBus();
       const repo = container.resolve<IUserRepository>('IUserRepository');
-      return new CreateUser(repo);
+      
+      commandBus.register('CreateUser', new CreateUserHandler(repo));
+      commandBus.register('UpdateUser', new UpdateUserHandler(repo));
+      commandBus.register('DeleteUser', new DeleteUserHandler(repo));
+      
+      return commandBus;
     },
-    'scoped'
+    'singleton'
   );
 
   container.register(
-    'GetUser',
+    'QueryBus',
     () => {
+      const queryBus = new QueryBus();
       const repo = container.resolve<IUserRepository>('IUserRepository');
-      return new GetUser(repo);
+      
+      queryBus.register('GetUser', new GetUserHandler(repo));
+      queryBus.register('GetAllUsers', new GetAllUsersHandler(repo));
+      
+      return queryBus;
     },
-    'scoped'
-  );
-
-  container.register(
-    'GetAllUsers',
-    () => {
-      const repo = container.resolve<IUserRepository>('IUserRepository');
-      return new GetAllUsers(repo);
-    },
-    'scoped'
-  );
-
-  container.register(
-    'UpdateUser',
-    () => {
-      const repo = container.resolve<IUserRepository>('IUserRepository');
-      return new UpdateUser(repo);
-    },
-    'scoped'
-  );
-
-  container.register(
-    'DeleteUser',
-    () => {
-      const repo = container.resolve<IUserRepository>('IUserRepository');
-      return new DeleteUser(repo);
-    },
-    'scoped'
+    'singleton'
   );
 
   container.register(
     'UserController',
     () => {
-      const createUser = container.resolve<CreateUser>('CreateUser');
-      const getUser = container.resolve<GetUser>('GetUser');
-      const getAllUsers = container.resolve<GetAllUsers>('GetAllUsers');
-      const updateUser = container.resolve<UpdateUser>('UpdateUser');
-      const deleteUser = container.resolve<DeleteUser>('DeleteUser');
+      const commandBus = container.resolve<CommandBus>('CommandBus');
+      const queryBus = container.resolve<QueryBus>('QueryBus');
 
-      return new UserController(
-        createUser,
-        getUser,
-        getAllUsers,
-        updateUser,
-        deleteUser
-      );
+      return new UserController(commandBus, queryBus);
     },
     'scoped'
   );
 
-  console.log('=== Container configured ===\n');
-
   return container;
 }
-

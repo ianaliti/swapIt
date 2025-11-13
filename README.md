@@ -1,6 +1,6 @@
-# User Management API
+# User Management API - CQRS
 
-Simple user management API with Clean Architecture.
+API with Clean Architecture and CQRS pattern.
 
 ## Start
 
@@ -17,35 +17,35 @@ API: http://localhost:3000/api
 ```
 src/
 ├── domain/
-│   ├── entities/
-│   ├── value-objects/
-│   └── ports/
 ├── application/
-│   ├── use-cases/
+│   ├── commands/    (write)
+│   ├── queries/     (read)
 │   └── dtos/
 ├── adapters/
-│   ├── presentation/
-│   ├── persistence/
-│   └── external/
 └── infrastructure/
-    └── di/
 ```
 
-## Architecture
+## CQRS Pattern
 
-Domain = entities + business rules
-Application = use cases
-Adapters = controllers + repositories
-Infrastructure = IoC container
+Commands = write operations (Create, Update, Delete)
+Queries = read operations (Get, GetAll)
 
-Dependencies: Adapters → Application → Domain
+Flow:
+Request → Controller → Command/Query → Bus → Handler → Response
 
-Domain has no dependencies.
+### Commands
+- CreateUserCommand
+- UpdateUserCommand  
+- DeleteUserCommand
+
+### Queries
+- GetUserQuery
+- GetAllUsersQuery
 
 ## Business Rule
 
-Email with @company.com = ADMINISTRATEUR
-Other email = UTILISATEUR
+Email @company.com = ADMINISTRATEUR
+Other = UTILISATEUR
 
 ## Endpoints
 
@@ -57,15 +57,8 @@ PUT    /api/users/:id
 DELETE /api/users/:id
 ```
 
-## Verify Architecture
+## Check Architecture
 
 ```bash
 npm run check:arch
 ```
-
-Checks:
-- Domain is independent
-- Application only imports Domain
-- No ORM in Domain
-- No DB access in Application
-- Controllers only call Use Cases
