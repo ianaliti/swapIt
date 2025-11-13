@@ -34,7 +34,7 @@ class App {
   private configureRoutes(): void {
     const router = express.Router();
 
-    router.get('/api', (req, res) => {
+    router.get('/', (req, res) => {
       res.json({
         success: true,
         message: 'API is running',
