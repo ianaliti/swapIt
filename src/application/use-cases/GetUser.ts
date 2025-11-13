@@ -1,8 +1,12 @@
-import { IUserRepository } from '../../domain/ports/IUserRepository';
-import { UserResponseDto, UserMapper } from '../dtos/UserDto';
+import { UserResponseDto } from '../dtos/UserDto';
+import { UserRepository } from '../../adapters/persistence/UserRepository';
 
 export class GetUser {
-  constructor(private userRepository: IUserRepository) {}
+  userRepository: UserRepository;
+
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
+  }
 
   async execute(id: number): Promise<UserResponseDto | null> {
     const user = await this.userRepository.findById(id);
@@ -11,6 +15,17 @@ export class GetUser {
       return null;
     }
 
-    return UserMapper.toResponseDto(user);
+    const result = {
+      id: user.id,
+      nom: user.nom,
+      prenom: user.prenom,
+      email: user.getEmail(),
+      telephone: user.getTelephone(),
+      profil: user.getProfil(),
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString()
+    };
+    
+    return result;
   }
 }

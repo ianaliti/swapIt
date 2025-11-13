@@ -17,13 +17,13 @@ src/
 │   └── __tests__/            # Domain unit tests
 │
 ├── application/              # Use Cases
-│   ├── use-cases/           # Business operations
-│   └── dtos/                # Data transfer objects
+│   ├── use-cases/           # Business operations (5 use cases)
+│   └── dtos/                # Data transfer objects (all in UserDto.ts)
 │
 └── adapters/                 # External World
-    ├── presentation/        # HTTP layer
-    ├── persistence/         # Data storage
-    └── external/            # External services
+    ├── presentation/        # HTTP layer (controllers)
+    ├── persistence/         # Data storage (in-memory)
+    └── external/            # External services (empty)
 ```
 
 ### Dependencies Flow
@@ -116,6 +116,8 @@ Instead of generic services, we have specific Use Cases:
 - Orchestrates the business logic
 - Contains Use Cases (business operations)
 - Uses ports defined by Domain
+- DTOs prevent Domain entities from leaking
+- Mapping done directly in each Use Case
 
 ### 3. Adapters - Presentation
 - HTTP controllers

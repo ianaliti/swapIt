@@ -1,4 +1,4 @@
-import { UserProfile, User } from '../../domain/entities/User';
+import { UserProfile } from '../../domain/entities/User';
 
 export interface CreateUserDto {
   nom: string;
@@ -23,19 +23,4 @@ export interface UserResponseDto {
   profil: UserProfile;
   createdAt: string;
   updatedAt: string;
-}
-
-export class UserMapper {
-  static toResponseDto(user: User): UserResponseDto {
-    return {
-      id: user.id,
-      nom: user.nom,
-      prenom: user.prenom,
-      email: user.getEmail(),
-      telephone: user.getTelephone(),
-      profil: user.getProfil(),
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString()
-    };
-  }
 }

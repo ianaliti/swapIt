@@ -1,22 +1,22 @@
-import { IUserRepository } from '../../domain/ports/IUserRepository';
-import { User } from '../../domain/entities/User';
-import { UpdateUserDto, UserResponseDto, UserMapper } from '../dtos/UserDto';
+import { UpdateUserDto, UserResponseDto } from '../dtos/UserDto';
+import { UserRepository } from '../../adapters/persistence/UserRepository';
 
 export class UpdateUser {
-  constructor(private userRepository: IUserRepository) {}
+  userRepository: UserRepository;
+
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
+  }
 
   async execute(id: number, userData: UpdateUserDto): Promise<UserResponseDto | null> {
+    console.log('Updating user:', id, userData);
+    
     const existingUser = await this.userRepository.findById(id);
     if (!existingUser) {
       return null;
     }
 
     if (userData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(userData.email)) {
-        throw new Error('Invalid email format');
-      }
-
       if (userData.email !== existingUser.getEmail()) {
         const emailExists = await this.userRepository.findByEmail(userData.email);
         if (emailExists) {
@@ -41,6 +41,15 @@ export class UpdateUser {
 
     existingUser.updatedAt = new Date();
 
-    return UserMapper.toResponseDto(existingUser);
+    return {
+      id: existingUser.id,
+      nom: existingUser.nom,
+      prenom: existingUser.prenom,
+      email: existingUser.getEmail(),
+      telephone: existingUser.getTelephone(),
+      profil: existingUser.getProfil(),
+      createdAt: existingUser.createdAt.toISOString(),
+      updatedAt: existingUser.updatedAt.toISOString()
+    };
   }
 }

@@ -1,5 +1,5 @@
 import { IUserRepository } from '../../domain/ports/IUserRepository';
-import { User, UserProfile } from '../../domain/entities/User';
+import { User } from '../../domain/entities/User';
 
 export class UserRepository implements IUserRepository {
   private users: Map<number, User> = new Map();

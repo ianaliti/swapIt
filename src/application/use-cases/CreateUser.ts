@@ -1,25 +1,27 @@
-import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { User } from '../../domain/entities/User';
-import { CreateUserDto, UserResponseDto, UserMapper } from '../dtos/UserDto';
+import { CreateUserDto, UserResponseDto } from '../dtos/UserDto';
+import { UserRepository } from '../../adapters/persistence/UserRepository';
 
 export class CreateUser {
-  constructor(private userRepository: IUserRepository) {}
+  userRepository: UserRepository;
+
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
+  }
 
   async execute(userData: CreateUserDto): Promise<UserResponseDto> {
-    if (!userData.nom?.trim()) {
+    console.log('Creating user:', userData);
+    
+    if (!userData.nom || userData.nom.trim() === '') {
       throw new Error('Name is required');
     }
     
-    if (!userData.prenom?.trim()) {
+    if (!userData.prenom || userData.prenom.trim() === '') {
       throw new Error('First name is required');
     }
     
-    if (!userData.email?.trim()) {
+    if (!userData.email || userData.email.trim() === '') {
       throw new Error('Email is required');
-    }
-    
-    if (!userData.telephone?.trim()) {
-      throw new Error('Phone number is required');
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,6 +44,17 @@ export class CreateUser {
 
     const createdUser = await this.userRepository.create(user);
     
-    return UserMapper.toResponseDto(createdUser);
+    const response: UserResponseDto = {
+      id: createdUser.id,
+      nom: createdUser.nom,
+      prenom: createdUser.prenom,
+      email: createdUser.getEmail(),
+      telephone: createdUser.getTelephone(),
+      profil: createdUser.getProfil(),
+      createdAt: createdUser.createdAt.toISOString(),
+      updatedAt: createdUser.updatedAt.toISOString()
+    };
+    
+    return response;
   }
 }
