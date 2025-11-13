@@ -5,27 +5,32 @@ import { GetAllUsers } from '../../../application/use-cases/GetAllUsers';
 import { UpdateUser } from '../../../application/use-cases/UpdateUser';
 import { DeleteUser } from '../../../application/use-cases/DeleteUser';
 import { CreateUserDto, UpdateUserDto } from '../../../application/dtos/UserDto';
-import { UserRepository } from '../../persistence/UserRepository';
 
 export class UserController {
-  private createUserUseCase: CreateUser;
-  private getUserUseCase: GetUser;
-  private getAllUsersUseCase: GetAllUsers;
-  private updateUserUseCase: UpdateUser;
-  private deleteUserUseCase: DeleteUser;
+  createUserUseCase: CreateUser;
+  getUserUseCase: GetUser;
+  getAllUsersUseCase: GetAllUsers;
+  updateUserUseCase: UpdateUser;
+  deleteUserUseCase: DeleteUser;
 
-  constructor() {
-    const userRepository = new UserRepository();
-    
-    this.createUserUseCase = new CreateUser(userRepository);
-    this.getUserUseCase = new GetUser(userRepository);
-    this.getAllUsersUseCase = new GetAllUsers(userRepository);
-    this.updateUserUseCase = new UpdateUser(userRepository);
-    this.deleteUserUseCase = new DeleteUser(userRepository);
+  constructor(
+    createUserUseCase: CreateUser,
+    getUserUseCase: GetUser,
+    getAllUsersUseCase: GetAllUsers,
+    updateUserUseCase: UpdateUser,
+    deleteUserUseCase: DeleteUser
+  ) {
+    this.createUserUseCase = createUserUseCase;
+    this.getUserUseCase = getUserUseCase;
+    this.getAllUsersUseCase = getAllUsersUseCase;
+    this.updateUserUseCase = updateUserUseCase;
+    this.deleteUserUseCase = deleteUserUseCase;
   }
 
   async create(req: Request, res: Response): Promise<void> {
     try {
+      console.log('Controller: Creating user');
+      
       const userData: CreateUserDto = req.body;
       
       const newUser = await this.createUserUseCase.execute(userData);
@@ -36,10 +41,24 @@ export class UserController {
         message: 'User created successfully'
       });
     } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        error: error.message || 'Cannot create user'
-      });
+      console.error('Controller error:', error.message);
+      
+      if (error.message.includes('already exists')) {
+        res.status(409).json({
+          success: false,
+          error: error.message
+        });
+      } else if (error.message.includes('required') || error.message.includes('Invalid')) {
+        res.status(400).json({
+          success: false,
+          error: error.message
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'Internal server error'
+        });
+      }
     }
   }
 
@@ -50,7 +69,7 @@ export class UserController {
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'Invalid ID'
+          error: 'Invalid ID format'
         });
         return;
       }
@@ -70,9 +89,11 @@ export class UserController {
         data: user
       });
     } catch (error: any) {
+      console.error('Controller error:', error.message);
+      
       res.status(500).json({
         success: false,
-        error: error.message || 'The user could not be retrieved'
+        error: 'Internal server error'
       });
     }
   }
@@ -87,9 +108,11 @@ export class UserController {
         count: users.length
       });
     } catch (error: any) {
+      console.error('Controller error:', error.message);
+      
       res.status(500).json({
         success: false,
-        error: error.message || 'The users could not be retrieved'
+        error: 'Internal server error'
       });
     }
   }
@@ -102,7 +125,7 @@ export class UserController {
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'Invalid ID'
+          error: 'Invalid ID format'
         });
         return;
       }
@@ -123,10 +146,24 @@ export class UserController {
         message: 'User updated successfully'
       });
     } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        error: error.message || 'The user could not be updated'
-      });
+      console.error('Controller error:', error.message);
+      
+      if (error.message.includes('already exists')) {
+        res.status(409).json({
+          success: false,
+          error: error.message
+        });
+      } else if (error.message.includes('Invalid')) {
+        res.status(400).json({
+          success: false,
+          error: error.message
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'Internal server error'
+        });
+      }
     }
   }
 
@@ -137,7 +174,7 @@ export class UserController {
       if (isNaN(id)) {
         res.status(400).json({
           success: false,
-          error: 'Invalid ID'
+          error: 'Invalid ID format'
         });
         return;
       }
@@ -157,9 +194,11 @@ export class UserController {
         message: 'User deleted successfully'
       });
     } catch (error: any) {
+      console.error('Controller error:', error.message);
+      
       res.status(500).json({
         success: false,
-        error: error.message || 'Cannot delete user'
+        error: 'Internal server error'
       });
     }
   }

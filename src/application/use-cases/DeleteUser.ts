@@ -1,9 +1,9 @@
-import { UserRepository } from '../../adapters/persistence/UserRepository';
+import { IUserRepository } from '../../domain/ports/IUserRepository';
 
 export class DeleteUser {
-  userRepository: UserRepository;
+  userRepository: IUserRepository;
 
-  constructor(userRepository: UserRepository) {
+  constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
   }
 

@@ -1,6 +1,8 @@
 import express, { Application } from 'express';
 import { setupUserRoutes } from './adapters/presentation/routes/userRoutes';
 import { errorHandler, notFoundHandler } from './adapters/presentation/middleware/errorHandler';
+import { configureContainer } from './infrastructure/di/ContainerConfig';
+import { UserController } from './adapters/presentation/controllers/UserController';
 
 class App {
   private app: Application;
@@ -34,7 +36,11 @@ class App {
       });
     });
 
-    setupUserRoutes(router);
+    const container = configureContainer();
+    
+    const userController = container.resolve<UserController>('UserController');
+
+    setupUserRoutes(router, userController);
 
     this.app.use('/api', router);
   }

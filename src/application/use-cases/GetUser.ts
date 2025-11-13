@@ -1,10 +1,10 @@
+import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { UserResponseDto } from '../dtos/UserDto';
-import { UserRepository } from '../../adapters/persistence/UserRepository';
 
 export class GetUser {
-  userRepository: UserRepository;
+  userRepository: IUserRepository;
 
-  constructor(userRepository: UserRepository) {
+  constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
   }
 

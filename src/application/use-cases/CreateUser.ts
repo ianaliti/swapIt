@@ -1,11 +1,11 @@
+import { IUserRepository } from '../../domain/ports/IUserRepository';
 import { User } from '../../domain/entities/User';
 import { CreateUserDto, UserResponseDto } from '../dtos/UserDto';
-import { UserRepository } from '../../adapters/persistence/UserRepository';
 
 export class CreateUser {
-  userRepository: UserRepository;
+  userRepository: IUserRepository;
 
-  constructor(userRepository: UserRepository) {
+  constructor(userRepository: IUserRepository) {
     this.userRepository = userRepository;
   }
 

@@ -20,10 +20,13 @@ src/
 │   ├── use-cases/           # Business operations (5 use cases)
 │   └── dtos/                # Data transfer objects (all in UserDto.ts)
 │
-└── adapters/                 # External World
-    ├── presentation/        # HTTP layer (controllers)
-    ├── persistence/         # Data storage (in-memory)
-    └── external/            # External services (empty)
+├── adapters/                 # External World
+│   ├── presentation/        # HTTP layer (controllers)
+│   ├── persistence/         # Data storage (in-memory)
+│   └── external/            # External services (empty)
+│
+└── infrastructure/           # Technical Services
+    └── di/                  # IoC Container (dependency injection)
 ```
 
 ### Dependencies Flow
@@ -69,8 +72,11 @@ This rule is in `domain/entities/User.ts` and is independent of any framework or
 - Profile automatically calculated based on email domain
 
 **Tests:**
-- 11 unit tests covering domain logic
-- Tests email validation, profile assignment, and user creation
+- 11 unit tests covering domain logic (entities + value objects)
+- 13 unit tests covering use cases (with mocked repositories)
+- 10 unit tests covering persistence layer (repository)
+- 5 unit tests covering IoC container (lifetimes, dependencies)
+- Total: 39 tests
 - Run with: `npm test`
 
 ## API Endpoints
@@ -120,14 +126,16 @@ Instead of generic services, we have specific Use Cases:
 - Mapping done directly in each Use Case
 
 ### 3. Adapters - Presentation
-- HTTP controllers
+- HTTP controllers (dependency injection)
 - Request/response handling
-- Calls Use Cases
+- Error mapping (400/404/409/500)
+- Calls Use Cases exclusively (no business logic)
 
 ### 4. Adapters - Persistence
 - Data storage implementation
 - Implements repository interfaces from Domain
-- In-memory storage for this project
+- In-memory storage (Map-based) for this project
+- 10 tests covering CRUD operations
 
 ### 5. Adapters - External
 - External service integrations
