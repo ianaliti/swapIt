@@ -28,7 +28,6 @@ router.post('/accounts', (req: Request, res: Response) => {
   }
 });
 
-// Get all accounts
 router.get('/accounts', (req: Request, res: Response) => {
   try {
     const accounts = getAllAccounts();

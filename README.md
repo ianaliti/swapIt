@@ -1,86 +1,56 @@
-# TP3 - Microservices Architecture
-## Gestion des Utilisateurs et Comptes Bancaires
+# TP3 - Microservices
+
+Deux microservices indépendants pour gérer les utilisateurs et leurs comptes bancaires.
 
 ---
 
-## 📖 Description du Projet
+## 🚀 Démarrage Rapide
 
-Ce projet implémente **deux microservices** pour gérer les utilisateurs et leurs comptes bancaires.
+### 1. Installer les dépendances
 
-**Objectif TP3** : Créer deux services indépendants qui peuvent communiquer entre eux.
-
-### Les Deux Services
-
-1. **User Service** → Gère les utilisateurs (création, suppression, etc.)
-2. **Account Service** → Gère les comptes bancaires (création, suppression, etc.)
-
-**Chaque service tourne sur son propre port** :
-- User Service : port **3000**
-- Account Service : port **3001**
-
-### Étape 1 : Installer les dépendances (si pas déjà fait)
-
-#### Pour User Service
+**Terminal 1** - User Service :
 ```bash
 cd services/user-service
 npm install
 ```
 
-#### Pour Account Service
+**Terminal 2** - Account Service :
 ```bash
 cd services/account-service
 npm install
 ```
 
-### Étape 2 : Lancer les deux services
+### 2. Lancer les services
 
-**Ouvrez DEUX terminaux** :
-
-#### Terminal 1 : User Service
+**Terminal 1** - User Service (port 3000) :
 ```bash
 cd services/user-service
 npm run dev
 ```
 
-**Vous devriez voir** :
-```
-Port: 3000
-User Service is running on http://localhost:3000/api
-```
-
-#### Terminal 2 : Account Service
+**Terminal 2** - Account Service (port 3001) :
 ```bash
 cd services/account-service
 npm run dev
 ```
 
-**Vous devriez voir** :
-```
-Port: 3001
-Account Service is running on http://localhost:3001/api
-```
+✅ Les deux services doivent être lancés en même temps !
 
 ---
 
-## Tester les Services
+## 🧪 Tests Rapides
 
-### Test 1 : Vérifier que les services fonctionnent
+### Test 1 : Vérifier que ça fonctionne
 
-**User Service** :
 ```bash
+# User Service
 curl http://localhost:3000/api
-```
 
-**Account Service** :
-```bash
+# Account Service
 curl http://localhost:3001/api
 ```
 
-Les deux devraient répondre avec `"success": true`.
-
----
-
-### Test 2 : Créer un utilisateur (POST /users)
+### Test 2 : Créer un utilisateur
 
 ```bash
 curl -X POST http://localhost:3000/api/users \
@@ -93,90 +63,81 @@ curl -X POST http://localhost:3000/api/users \
   }'
 ```
 
-### Test 3 : Récupérer tous les utilisateurs (GET /users)
+💡 **Important** : Quand vous créez un utilisateur, un compte bancaire est créé automatiquement !
+
+### Test 3 : Voir les comptes d'un utilisateur
 
 ```bash
-curl http://localhost:3000/api/users
+# Remplacez 1 par l'ID de l'utilisateur créé
+curl http://localhost:3001/api/accounts/user/1
 ```
 
----
+### Test 4 : Supprimer un utilisateur
 
-### Test 4 : Supprimer un utilisateur (DELETE /users/:id)
-
-**Remplacez `1` par l'id de l'utilisateur que vous avez créé** :
 ```bash
+# Remplacez 1 par l'ID de l'utilisateur
 curl -X DELETE http://localhost:3000/api/users/1
 ```
 
-**Réponse attendue** :
-```json
-{
-  "success": true,
-  "message": "User deleted successfully"
-}
-```
+💡 **Important** : Quand vous supprimez un utilisateur, tous ses comptes sont supprimés automatiquement !
 
 ---
 
-### Test 5 : Créer un compte bancaire (POST /accounts)
+## 🔄 Étape 2 : Transactions Atomiques
 
-```bash
-curl -X POST http://localhost:3001/api/accounts \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": "user-123",
-    "currency": "EUR"
-  }'
-```
+Le User Service garantit que les données restent cohérentes :
 
-**Réponse attendue** :
-```json
-{
-  "success": true,
-  "data": {
-    "accountId": "xxx-xxx-xxx",
-    "userId": "user-123",
-    "accountNumber": "ACC-1234567890",
-    "balance": 0,
-    "currency": "EUR",
-    ...
-  },
-  "message": "Account created successfully"
-}
-```
+### ✅ Création d'utilisateur
 
----
+1. Crée l'utilisateur
+2. Crée automatiquement un compte bancaire
+3. **Si le compte échoue** → supprime l'utilisateur (rollback)
 
-### Test 6 : Supprimer un compte bancaire (DELETE /accounts/:id)
+### ✅ Suppression d'utilisateur
 
-**Remplacez `ACCOUNT-ID` par l'accountId du compte créé** :
-```bash
-curl -X DELETE http://localhost:3001/api/accounts/ACCOUNT-ID
-```
+1. Supprime tous les comptes de l'utilisateur
+2. **Si la suppression des comptes échoue** → l'utilisateur n'est pas supprimé
+3. Si tout est OK → supprime l'utilisateur
+
+### 🧪 Test : Simuler une erreur
+
+1. **Éteignez Account Service** (Ctrl+C dans le Terminal 2)
+2. **Essayez de créer un utilisateur** :
+   ```bash
+   curl -X POST http://localhost:3000/api/users \
+     -H "Content-Type: application/json" \
+     -d '{
+       "nom": "Test",
+       "prenom": "Error",
+       "email": "test@example.com",
+       "telephone": "0123456789"
+     }'
+   ```
+3. **Résultat** : Erreur + l'utilisateur n'est **PAS** créé ✅
 
 ---
 
-## 📋 Liste Complète des Endpoints
+## 📡 Endpoints Disponibles
 
 ### User Service (Port 3000)
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
 | POST | `/api/users` | Créer un utilisateur |
-| GET | `/api/users` | Récupérer tous les utilisateurs |
-| GET | `/api/users/:id` | Récupérer un utilisateur par ID |
-| PUT | `/api/users/:id` | Mettre à jour un utilisateur |
-| DELETE | `/api/users/:id` | **Supprimer un utilisateur** |
+| GET | `/api/users` | Liste des utilisateurs |
+| GET | `/api/users/:id` | Détails d'un utilisateur |
+| PUT | `/api/users/:id` | Modifier un utilisateur |
+| DELETE | `/api/users/:id` | Supprimer un utilisateur |
 
 ### Account Service (Port 3001)
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
-| POST | `/api/accounts` | **Créer un compte bancaire** |
-| GET | `/api/accounts` | Récupérer tous les comptes |
-| GET | `/api/accounts/:id` | Récupérer un compte par ID |
-| GET | `/api/accounts/user/:userId` | Récupérer les comptes d'un utilisateur |
-| DELETE | `/api/accounts/:id` | **Supprimer un compte bancaire** |
+| POST | `/api/accounts` | Créer un compte |
+| GET | `/api/accounts` | Liste des comptes |
+| GET | `/api/accounts/:id` | Détails d'un compte |
+| GET | `/api/accounts/user/:userId` | Comptes d'un utilisateur |
+| DELETE | `/api/accounts/:id` | Supprimer un compte |
 
 ---
 
@@ -185,26 +146,29 @@ curl -X DELETE http://localhost:3001/api/accounts/ACCOUNT-ID
 ```
 swap_dev/
 ├── services/
-│   ├── user-service/          # Microservice 1
-│   │   ├── src/               # Code source
-│   │   ├── package.json       # Dépendances
-│   │   └── tsconfig.json      # Config TypeScript
-│   │
-│   └── account-service/       # Microservice 2
-│       ├── src/               # Code source
-│       ├── package.json       # Dépendances
-│       └── tsconfig.json      # Config TypeScript
-│
-└── README.md                  # Ce fichier
+│   ├── user-service/      # Port 3000
+│   └── account-service/   # Port 3001
+└── README.md
 ```
 
+---
 
-## 🔧 Technologies Utilisées
+## 🔧 Technologies
 
-- **Node.js** : Environnement d'exécution
-- **TypeScript** : Langage de programmation
-- **Express.js** : Framework pour créer l'API REST
-
-**Base de données** : Stockage en mémoire (pour simplifier le TP3)
+- **Node.js** + **TypeScript**
+- **Express.js** (API REST)
+- **Axios** (communication entre services)
+- **Stockage en mémoire** (pour simplifier)
 
 ---
+
+## ✅ Status
+
+- ✅ **Étape 1** : Deux microservices indépendants
+- ✅ **Étape 2** : Transactions atomiques avec rollback
+- 🔜 **Étape 3** : API agrégée (à venir)
+
+---
+
+**Projet** : TP3 - Architecture Logicielle  
+**Année** : 2025

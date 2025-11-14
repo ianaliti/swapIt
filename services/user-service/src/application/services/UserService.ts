@@ -4,11 +4,13 @@ import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { CreateUserDto, UpdateUserDto, UserResponseDto, UserMapper } from '../dtos/UserDto';
 import { User } from '../../domain/entities/User';
 import { TYPES } from '../../config/types';
+import { AccountServiceClient } from '../../infrastructure/services/AccountServiceClient';
 
 @injectable()
 export class UserService implements IUserService {
   constructor(
-    @inject(TYPES.IUserRepository) private userRepository: IUserRepository
+    @inject(TYPES.IUserRepository) private userRepository: IUserRepository,
+    @inject(TYPES.AccountServiceClient) private accountServiceClient: AccountServiceClient
   ) {}
 
   async createUser(userData: CreateUserDto): Promise<UserResponseDto> {
@@ -30,6 +32,16 @@ export class UserService implements IUserService {
     } as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 
     const createdUser = await this.userRepository.create(userToCreate);
+
+    try {
+      await this.accountServiceClient.createAccount(
+        createdUser.id.toString(),
+        'EUR'
+      );
+    } catch (error: any) {
+      await this.userRepository.delete(createdUser.id);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
 
     return UserMapper.toResponseDto(createdUser);
   }
@@ -82,6 +94,12 @@ export class UserService implements IUserService {
     const user = await this.userRepository.findById(id);
     if (!user) {
       return false;
+    }
+
+    try {
+      await this.accountServiceClient.deleteAllAccountsByUserId(id.toString());
+    } catch (error: any) {
+      throw new Error(`Cannot delete user: ${error.message}. Please delete accounts first.`);
     }
 
     return await this.userRepository.delete(id);
