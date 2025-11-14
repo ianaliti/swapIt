@@ -37,13 +37,16 @@ class App {
     router.get('/', (req, res) => {
       res.json({
         success: true,
-        message: 'API is running',
+        message: 'User Service API is running',
+        service: 'User Service',
+        version: '1.0.0',
         timestamp: new Date().toISOString()
       });
     });
 
     const userController = this.container.get<UserController>(TYPES.UserController);
     configureUserRoutes(router, userController);
+
 
     this.app.use('/api', router);
   }
@@ -55,9 +58,8 @@ class App {
 
   start(): void {
     this.app.listen(this.port, () => {
-      console.log('API started on port ' + this.port);
-      console.log('http://localhost:' + this.port + '/api');
-      console.log('');
+      console.log(`Port: ${this.port}`);
+      console.log(`User Service is running on http://localhost:${this.port}/api`);
     });
   }
 }

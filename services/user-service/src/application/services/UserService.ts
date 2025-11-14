@@ -21,13 +21,13 @@ export class UserService implements IUserService {
 
     const profil = User.determineProfile(userData.email);
 
-    const userToCreate = {
+    const userToCreate: Omit<User, 'id' | 'createdAt' | 'updatedAt'> = {
       nom: userData.nom,
       prenom: userData.prenom,
       email: userData.email,
       telephone: userData.telephone,
       profil: profil
-    };
+    } as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 
     const createdUser = await this.userRepository.create(userToCreate);
 
@@ -66,7 +66,7 @@ export class UserService implements IUserService {
       }
 
       const newProfil = User.determineProfile(userData.email);
-      userData = { ...userData, profil: newProfil };
+      (userData as any).profil = newProfil;
     }
 
     const updatedUser = await this.userRepository.update(id, userData);
