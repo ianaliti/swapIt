@@ -3,11 +3,13 @@ import { injectable, inject } from 'inversify';
 import { IUserService } from '../../application/services/IUserService';
 import { CreateUserDto, UpdateUserDto } from '../../application/dtos/UserDto';
 import { TYPES } from '../../config/types';
+import { AccountServiceClient } from '../../infrastructure/services/AccountServiceClient';
 
 @injectable()
 export class UserController {
   constructor(
-    @inject(TYPES.IUserService) private userService: IUserService
+    @inject(TYPES.IUserService) private userService: IUserService,
+    @inject(TYPES.AccountServiceClient) private accountServiceClient: AccountServiceClient
   ) {}
 
   async createUser(req: Request, res: Response): Promise<void> {
@@ -145,6 +147,46 @@ export class UserController {
       res.status(500).json({
         success: false,
         error: error.message || 'Cannot delete user'
+      });
+    }
+  }
+
+  async getUserWithAccounts(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id);
+
+      if (isNaN(id)) {
+        res.status(400).json({
+          success: false,
+          error: 'ID invalide'
+        });
+        return;
+      }
+
+      const user = await this.userService.getUserById(id);
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+        return;
+      }
+
+      const accounts = await this.accountServiceClient.getAccountsByUserId(id.toString());
+
+      res.status(200).json({
+        success: true,
+        data: {
+          nom: user.nom,
+          prenom: user.prenom,
+          accounts: accounts
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Cannot retrieve user with accounts'
       });
     }
   }
